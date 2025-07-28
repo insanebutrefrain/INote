@@ -1,0 +1,34 @@
+package macom.inote.room
+
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import macom.inote.data.Note
+import macom.inote.data.Task
+import macom.inote.data.TaskList
+import macom.inote.data.Todo
+
+@Database(entities = [Note::class, Todo::class, TaskList::class, Task::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun noteDao(): NoteDao
+    abstract fun todoDao(): TodoDao
+    abstract fun taskListDao(): TaskListDao
+    abstract fun taskDao(): TaskDao
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "app_database"
+                ).build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
+}
