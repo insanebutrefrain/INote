@@ -8,10 +8,12 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -19,7 +21,6 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -38,7 +39,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import macom.inote.data.Task
 import macom.inote.data.TaskList
 import macom.inote.ui.pager.isAddTaskList
@@ -56,56 +56,60 @@ fun TaskView(
     viewModel: INoteViewModel,
     isDeleteMap: SnapshotStateMap<Task, Boolean>,
     isDeleteMode: MutableState<Boolean>,
+    bottomPadding: PaddingValues,
+    topPadding: PaddingValues
 ) {
     val state = viewModel.state.collectAsState()
     val isExpanded = remember { mutableStateOf(false) }
     Column(
-        modifier = Modifier,
+        modifier = Modifier.padding(
+            top = topPadding.calculateTopPadding(),
+            bottom = bottomPadding.calculateBottomPadding()
+        ),
         verticalArrangement = Arrangement.Top,
     ) {
-        Row(
+        LazyRow(
             modifier = Modifier,
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            FilterChip(selected = false,
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 2.dp),
-                onClick = {},
-                label = {
-                    Text(
-                        modifier = Modifier,
-                        text = nowTaskList.value.listName,
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                leadingIcon = {
-                    IconButton(onClick = {
-                        scope.launch { drawerState.open() }
-                    }) {
-                        Icon(
-                            modifier = Modifier,
-                            imageVector = Icons.Filled.Menu,
-                            contentDescription = null
-                        )
-                    }
-                },
-                trailingIcon = {
+            item {
+                IconButton(onClick = {
+                    isAddTaskList.value = true
+                }) {
                     Icon(
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .clickable { isEditListName.value = true },
-                        imageVector = Icons.Filled.Edit,
-                        contentDescription = null
+                        imageVector = Icons.Filled.AddCircle,
+                        contentDescription = "添加任务列表"
                     )
+                }
+            }
+            items(state.value.taskLists) { taskList ->
+                FilterChip(selected = nowTaskList.value == taskList,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 2.dp),
+                    onClick = {
+                        nowTaskList.value = taskList
+                    },
+                    label = {
+                        Text(
+                            modifier = Modifier,
+                            text = taskList.listName,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    trailingIcon = {
+                        if (nowTaskList.value == taskList) Icon(
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .clickable { isEditListName.value = true },
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "修改名字"
+                        )
 
-                })
-            IconButton(onClick = {
-                isAddTaskList.value = true
-            }) {
-                Icon(imageVector = Icons.Filled.AddCircle, contentDescription = "添加任务列表")
+                    })
             }
         }
+
         LazyColumn(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally

@@ -15,13 +15,13 @@ import macom.inote.viewModel.INoteViewModel
 sealed class Pager(
     val route: String, //标识
     val title: String,
-    val icons: List<Int>,
+    val icon: Int,
     val screenLoader: @Composable (bottomPadding: PaddingValues, navController: NavHostController, viewModel: INoteViewModel) -> Unit,
     val FAB: @Composable (viewModel: INoteViewModel, navController: NavHostController) -> Unit
 ) {
     data object Note : Pager(route = "note",
         title = "笔记",
-        icons = listOf(R.drawable.note_outlined, R.drawable.note_filled),
+        icon = R.drawable.note,
         { padding, navController, viewModel ->
             NotePager(
                 bottomPadding = padding, navController = navController, viewModel = viewModel
@@ -31,7 +31,7 @@ sealed class Pager(
 
     data object Todo : Pager(route = "todo",
         title = "待办",
-        icons = listOf(R.drawable.todo_outlined, R.drawable.todo_filled),
+        icon = R.drawable.todo,
         screenLoader = { padding, navController, viewModel ->
             TodoPager(
                 padding, navController, viewModel
@@ -41,7 +41,7 @@ sealed class Pager(
 
     data object Task : Pager(route = "task",
         title = "任务",
-        icons = listOf(R.drawable.task_outlined, R.drawable.task_filled),
+        icon = R.drawable.task,
         screenLoader = { padding, navController, viewModel ->
             TaskPager(
                 padding, navController, viewModel

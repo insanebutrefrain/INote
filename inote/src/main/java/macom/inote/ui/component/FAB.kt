@@ -31,20 +31,20 @@ fun FAB(
             enter = fadeIn(
                 initialAlpha = 0f,   // 开始时完全透明
                 animationSpec = tween(
-                    durationMillis = 300,   // 动画持续时间，单位毫秒
+                    durationMillis = 100,   // 动画持续时间，单位毫秒
                     easing = FastOutSlowInEasing  // 采用平滑的缓动函数
                 )
             ) + scaleIn(
                 initialScale = 0f,
-                animationSpec = tween(delayMillis = 300, easing = FastOutSlowInEasing)
+                animationSpec = tween(delayMillis = 100, easing = FastOutSlowInEasing)
             ),
             exit = scaleOut(
                 targetScale = 0f,
-                animationSpec = tween(delayMillis = 300, easing = FastOutSlowInEasing)
+                animationSpec = tween(delayMillis = 100, easing = FastOutSlowInEasing)
             ) + fadeOut(
                 targetAlpha = 0f,  // 结束时完全透明
                 animationSpec = tween(
-                    durationMillis = 300,   // 动画持续时间，800毫秒
+                    durationMillis = 100,   // 动画持续时间，800毫秒
                     easing = EaseInOut    // 采用平滑的缓动函数
                 )
             )

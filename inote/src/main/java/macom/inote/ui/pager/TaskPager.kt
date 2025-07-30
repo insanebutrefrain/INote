@@ -17,16 +17,25 @@ import macom.inote.data.Task
 import macom.inote.data.TaskList
 import macom.inote.ui.component.AlertEdit
 import macom.inote.ui.component.DeleteConfirmAlert
-import macom.inote.ui.pager.taskPager.DrawerView
 import macom.inote.ui.pager.taskPager.TaskAddAlert
 import macom.inote.ui.pager.taskPager.TaskTopBar
+import macom.inote.ui.pager.taskPager.TaskView
 import macom.inote.viewModel.INoteIntent
 import macom.inote.viewModel.INoteViewModel
 
 val isEditListName = mutableStateOf(false)
 val isAddTaskList = mutableStateOf(false)
 val isEditTask = mutableStateOf(false)
-val selectEditTask = mutableStateOf(Task(false, "", System.currentTimeMillis(), null, 0))
+val selectEditTask = mutableStateOf(
+    Task(
+        isOver = false,
+        body = "",
+        createTime = System.currentTimeMillis(),
+        remindTime = null,
+        taskListId = 0,
+        user = "123", // todo user
+    )
+)
 
 /**
  * 任务页面
@@ -55,7 +64,8 @@ fun TaskPager(
             isDeleteMap = isDeleteMap,
             isDeleteAlert = isShowDeleteAlert,
             viewModel = viewModel,
-            nowTaskList = nowTaskList
+            nowTaskList = nowTaskList,
+            navController = navController
         )
     }) { topPadding ->
         DeleteConfirmAlert(isShowDeleteAlert = isShowDeleteAlert, onDismiss = {
@@ -102,7 +112,8 @@ fun TaskPager(
             onDismiss = { isAddTaskList.value = false },
             onConfirm = { listName ->
                 val newTaskList = TaskList(
-                    listName, System.currentTimeMillis()
+                    listName = listName, createTime = System.currentTimeMillis(),
+                    user = "123", // todo user
                 )
                 val intent = INoteIntent.AddTaskList(newTaskList)
                 viewModel.addTaskList(intent)
@@ -119,15 +130,26 @@ fun TaskPager(
                 viewModel.editTaskListName(intent)
                 nowTaskList.value = nowTaskList.value.copy(listName = listName)
             })
-        DrawerView(
-            bottomPadding = bottomPadding,
-            topPadding = topPadding,
+//        DrawerView(
+//            bottomPadding = bottomPadding,
+//            topPadding = topPadding,
+//            drawerState = drawerState,
+//            nowTaskList = nowTaskList,
+//            scope = scope,
+//            viewModel = viewModel,
+//            isDeleteMap = isDeleteMap,
+//            isDeleteMode = isDeleteMode
+//        )
+        // 在这里调用
+        TaskView(
+            scope = scope,
             drawerState = drawerState,
             nowTaskList = nowTaskList,
-            scope = scope,
             viewModel = viewModel,
             isDeleteMap = isDeleteMap,
-            isDeleteMode = isDeleteMode
+            isDeleteMode = isDeleteMode,
+            topPadding = topPadding,
+            bottomPadding = bottomPadding
         )
     }
 }

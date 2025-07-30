@@ -1,6 +1,8 @@
 package macom.inote.viewModel
 
 import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,11 +13,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import macom.inote.data.Note
 import macom.inote.data.TaskList
+import macom.inote.repository.NoteRepository
+import macom.inote.repository.TaskListRepository
+import macom.inote.repository.TaskRepository
+import macom.inote.repository.TodoRepository
+import macom.inote.repository.UserRepository
 import macom.inote.room.AppDatabase
-import macom.inote.room.NoteRepository
-import macom.inote.room.TaskListRepository
-import macom.inote.room.TaskRepository
-import macom.inote.room.TodoRepository
 
 open class INoteViewModel(application: Application) : AndroidViewModel(application) {
     private val _state =
@@ -26,14 +29,69 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
     private val noteRepository = NoteRepository(AppDatabase.getDatabase(application).noteDao())
     private val taskListRepository =
         TaskListRepository(AppDatabase.getDatabase(application).taskListDao())
+    private val userRepository = UserRepository(AppDatabase.getDatabase(application).userDao())
+
+    private var loginInfo: SharedPreferences =
+        application.getSharedPreferences("loginInfo", Context.MODE_PRIVATE)
 
     init {
-        viewModelScope.launch {
-            _state.value.notes.addAll(noteRepository.getAll())
-            _state.value.tasks.addAll(taskRepository.getAll())
-            _state.value.taskLists.addAll(taskListRepository.getAll())
-            _state.value.todos.addAll(todoRepository.getAll())
+        // 获取所有数据
+        reload()
+    }
+
+    private fun reload() {
+        if (getUser() != null && getPsw() != null) {
+            viewModelScope.launch {
+                _state.value.user.value =
+                    userRepository.findUser(getUser()!!, getPsw()!!)
+                _state.value.notes.addAll(noteRepository.getAll(getUser()!!))
+                _state.value.tasks.addAll(taskRepository.getAll(getUser()!!))
+                _state.value.taskLists.addAll(taskListRepository.getAll(getUser()!!))
+                _state.value.todos.addAll(todoRepository.getAll(getUser()!!))
+            }
         }
+    }
+
+    /**
+     * user
+     */
+    suspend fun register(intent: INoteIntent.Register): Boolean {
+        return if (userRepository.findUser(intent.user.id) != null)
+            false else {
+            userRepository.insert(intent.user)
+            true
+        }
+    }
+
+    suspend fun login(intent: INoteIntent.Login): Boolean {
+        if (userRepository.findUser(intent.id, intent.psw) == null) {
+            return false
+        } else {
+            setUserAndPsw(intent.id, intent.psw)
+            reload()
+            return true
+        }
+    }
+
+    fun logout(intent: INoteIntent.Logout) {
+        setUserAndPsw(user = null, psw = null)
+    }
+
+    /**
+     * 登录信息
+     */
+
+    fun getUser(): String? {
+        return loginInfo.getString("user", null)
+    }
+
+    fun getPsw(): String? {
+        return loginInfo.getString("psw", null)
+    }
+
+    fun setUserAndPsw(user: String?, psw: String?) {
+        loginInfo.edit().putString("user", user).apply()
+        loginInfo.edit().putString("psw", psw).apply()
     }
 
     /**
@@ -44,7 +102,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
             withContext(Dispatchers.IO) {
 
                 // 从云端获取所有笔记并同步到本地
-                val allInServer = noteRepository.getAllNotesFromServer()
+                val allInServer = noteRepository.getAllNotesFromServer(getUser()!!)
                 allInServer.forEach {
                     val success = noteRepository.insert(it)
                     if (!success) {
@@ -54,7 +112,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
                 }
 
                 // 获取本地所有笔记并同步到云端
-                val all = noteRepository.getAll()
+                val all = noteRepository.getAll(getUser()!!)
                 all.forEach {
                     val success = noteRepository.addNoteToServer(it)
                     if (!success) {
@@ -64,7 +122,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
                 }
                 // 更新本地状态
                 _state.value.notes.clear()
-                _state.value.notes.addAll(noteRepository.getAll())
+                _state.value.notes.addAll(noteRepository.getAll(getUser()!!))
                 true // 如果所有操作成功，则返回 true
             }
         } catch (e: Exception) {
@@ -78,7 +136,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
             withContext(Dispatchers.IO) {
 
                 // 从云端获取所有笔记并同步到本地
-                val allInServer = todoRepository.syncAllTodosFromServer()
+                val allInServer = todoRepository.syncAllTodosFromServer(getUser()!!)
                 allInServer.forEach {
                     val success = todoRepository.insert(it)
                     if (!success) {
@@ -88,7 +146,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
                 }
 
                 // 获取本地所有笔记并同步到云端
-                val all = todoRepository.getAll()
+                val all = todoRepository.getAll(getUser()!!)
                 all.forEach {
                     val success = todoRepository.addTodoToServer(it)
                     if (!success) {
@@ -98,7 +156,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
                 }
                 // 更新本地状态
                 _state.value.todos.clear()
-                _state.value.todos.addAll(todoRepository.getAll())
+                _state.value.todos.addAll(todoRepository.getAll(getUser()!!))
                 true // 如果所有操作成功，则返回 true
             }
         } catch (e: Exception) {
@@ -112,7 +170,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
             withContext(Dispatchers.IO) {
 
                 // 从云端获取所有笔记并同步到本地
-                val allTaskInServer = taskRepository.syncAllTasksFromServer()
+                val allTaskInServer = taskRepository.syncAllTasksFromServer(getUser()!!)
                 allTaskInServer.forEach {
                     val success = taskRepository.insert(it)
                     if (!success) {
@@ -120,7 +178,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
                         return@withContext false // 立即返回 false，停止后续逻辑
                     }
                 }
-                taskListRepository.syncAllTaskListsFromServer().forEach {
+                taskListRepository.syncAllTaskListsFromServer(getUser()!!).forEach {
                     val success = taskListRepository.insert(it)
                     if (!success) {
                         Log.d("网络", "同步本地任务表失败: ${it}")
@@ -129,7 +187,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
                 }
                 // 更新本地状态
                 // 获取本地所有笔记并同步到云端
-                val allTasks = taskRepository.getAll()
+                val allTasks = taskRepository.getAll(getUser()!!)
                 allTasks.forEach {
                     val success = taskRepository.addTaskToServer(it)
                     if (!success) {
@@ -137,7 +195,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
                         return@withContext false // 立即返回 false，停止后续逻辑
                     }
                 }
-                taskListRepository.getAll().forEach {
+                taskListRepository.getAll(getUser()!!).forEach {
                     val success = taskListRepository.addTaskListToServer(it)
                     if (!success) {
                         Log.d("网络", "同步任务表到云端失败: ${it}")
@@ -146,9 +204,15 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
                 }
                 _state.value.tasks.clear()
                 _state.value.taskLists.clear()
-                _state.value.tasks.addAll(taskRepository.getAll())
-                _state.value.taskLists.add(TaskList("全部", 0))
-                _state.value.taskLists.addAll(taskListRepository.getAll())
+                _state.value.tasks.addAll(taskRepository.getAll(getUser()!!))
+                _state.value.taskLists.add(
+                    TaskList(
+                        listName = "全部",
+                        createTime = 0,
+                        user = "123"
+                    )
+                )
+                _state.value.taskLists.addAll(taskListRepository.getAll(getUser()!!))
                 true // 如果所有操作成功，则返回 true
             }
         } catch (e: Exception) {
@@ -176,7 +240,8 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
             title = intent.title,
             body = intent.body,
             createTime = intent.createTime,
-            modifiedTime = intent.modifiedTime
+            modifiedTime = intent.modifiedTime,
+            user = "123", // todo user
         )
         val newState = state.value.copy()
         if (index != -1) {
@@ -206,7 +271,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     /**
-     * todo
+     * to do
      */
     fun addTodo(intent: INoteIntent.AddToDO) {
         _state.value.todos.add(intent.todo)

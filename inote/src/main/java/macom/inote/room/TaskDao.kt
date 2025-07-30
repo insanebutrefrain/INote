@@ -22,9 +22,6 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE taskListId = :taskListId")
     suspend fun getTasksByListId(taskListId: Long): List<Task>
 
-    @Query("SELECT * FROM tasks WHERE createTime = :createTime")
-    suspend fun getTaskByCreateTime(createTime: Long): Task?
-
-    @Query("SELECT * FROM tasks ")
-    suspend fun getAll(): List<Task>
+    @Query("SELECT * FROM tasks WHERE user = :user ")
+    suspend fun getAll(user: String): List<Task>
 }

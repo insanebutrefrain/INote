@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 /**
- * 输入框，由于多次使用，封装成一个函数
+ * 输入框，用于修改任务表名
  */
 @Composable
 fun AlertEdit(

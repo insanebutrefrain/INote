@@ -30,7 +30,7 @@ import macom.inote.data.TaskList
 import macom.inote.viewModel.INoteViewModel
 
 /**
- * 抽屉界面
+ * 抽屉界面，已经弃用
  */
 @Composable
 fun DrawerView(
@@ -80,7 +80,9 @@ fun DrawerView(
             nowTaskList = nowTaskList,
             viewModel = viewModel,
             isDeleteMap = isDeleteMap,
-            isDeleteMode = isDeleteMode
+            isDeleteMode = isDeleteMode,
+            bottomPadding = bottomPadding,
+            topPadding = topPadding
         )
     }
 }

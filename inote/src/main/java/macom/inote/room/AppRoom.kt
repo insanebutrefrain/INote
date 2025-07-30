@@ -10,6 +10,6 @@ class AppRoom : Application() {
         database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, "app_database"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 }

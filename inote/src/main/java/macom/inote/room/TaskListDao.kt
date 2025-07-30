@@ -19,9 +19,6 @@ interface TaskListDao {
     @Delete
     suspend fun delete(taskList: TaskList)
 
-    @Query("SELECT * FROM task_lists")
-    suspend fun getAll(): List<TaskList>
-
-    @Query("SELECT * FROM task_lists WHERE createTime = :createTime")
-    suspend fun getTaskListByCreateTime(createTime: Long): TaskList?
+    @Query("SELECT * FROM task_lists WHERE user = :user")
+    suspend fun getAll(user: String): List<TaskList>
 }

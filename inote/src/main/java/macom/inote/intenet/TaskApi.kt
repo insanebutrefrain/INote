@@ -14,12 +14,12 @@ interface TaskApi {
     @POST("task/add")
     fun createTask(@Body task: Task): Call<Task>
 
-    @GET("task/getAll")
-    fun getAllTasks(): Call<List<Task>>
+    @GET("task/getAll/{user}")
+    fun getAllTasks(@Path("user") user: String): Call<List<Task>>
 
-    @PUT("task/update/{id}")
-    fun updateTask(@Path("id") id: Long, @Body task: Task): Call<Task>
+    @PUT("task/update")
+    fun updateTask(@Body task: Task): Call<Task>
 
-    @DELETE("task/delete/{id}")
-    fun deleteTask(@Path("id") id: Long): Call<Void>
+    @DELETE("task/delete}")
+    fun deleteTask(@Body task: Task): Call<Void>
 }

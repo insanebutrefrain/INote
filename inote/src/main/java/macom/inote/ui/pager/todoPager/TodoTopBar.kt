@@ -13,8 +13,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
-import androidx.compose.ui.res.painterResource
-import macom.inote.R
+import androidx.navigation.NavHostController
 import macom.inote.data.Todo
 import macom.inote.ui.pager.Pager
 import macom.inote.viewModel.INoteViewModel
@@ -28,7 +27,8 @@ fun TodoTopBar(
     isDeleteMode: MutableState<Boolean>,
     isDeleteMap: SnapshotStateMap<Todo, Boolean>,
     isDeleteAlert: MutableState<Boolean>,
-    viewModel: INoteViewModel
+    viewModel: INoteViewModel,
+    navController: NavHostController
 ) {
     val isExpand = remember { mutableStateOf(false) }
     if (!isDeleteMode.value) TopAppBar(title = { Text(Pager.Todo.title) },
@@ -41,7 +41,12 @@ fun TodoTopBar(
                 isExpand.value = true
             }) {
                 Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "更多")
-                TodoMenuView(isExpand, isDeleteMode, viewModel = viewModel)
+                TodoMenuView(
+                    isExpand = isExpand,
+                    isDeleteMode = isDeleteMode,
+                    viewModel = viewModel,
+                    navController = navController
+                )
             }
         })
     else {

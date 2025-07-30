@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -63,11 +65,11 @@ fun NoteEditScreen(
     onSave: (title: String, content: String, modifyTime: Long, createTime: Long) -> Unit // 保存函数作为参数
 ) {
     // 当前标题和内容
-    var title by remember { mutableStateOf(note?.title ?: "") }
-    var content by remember { mutableStateOf(note?.body ?: "") }
+    var title by remember { mutableStateOf(value = note?.title ?: "") }
+    var content by remember { mutableStateOf(value = note?.body ?: "") }
     var lastModifiedTime by remember {
         mutableStateOf(
-            note?.modifiedTime ?: System.currentTimeMillis()
+            value = note?.modifiedTime ?: System.currentTimeMillis()
         )
     }
     var createTime by remember { mutableStateOf(note?.createTime ?: System.currentTimeMillis()) }
@@ -111,6 +113,7 @@ fun NoteEditScreen(
                                 title = lastState.first
                                 content = lastState.second
                                 lastModifiedTime = System.currentTimeMillis()
+                                isSaved = false
                             }
                         },
                         enabled = undoStack.isNotEmpty()
@@ -126,6 +129,7 @@ fun NoteEditScreen(
                                 title = nextState.first
                                 content = nextState.second
                                 lastModifiedTime = System.currentTimeMillis()
+                                isSaved = false
                             }
                         },
                         enabled = redoStack.isNotEmpty()
@@ -156,12 +160,37 @@ fun NoteEditScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState()) // 标题和正文一起滚动
             ) {
+                // 显示最后修改的时间和日期
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(IntrinsicSize.Min),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        text =
+                        SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(
+                            lastModifiedTime
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    VerticalDivider(color = MaterialTheme.colorScheme.secondary)
+                    Text(
+                        text = "${content.length} 字符",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
                 // 标题输入框
                 Text(
                     text = "标题",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
                 )
                 BasicTextField(
                     value = title,
@@ -188,30 +217,8 @@ fun NoteEditScreen(
                             }
                         }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
 
-                // 显示最后修改时间和字符数
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 30.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "最后修改时间: ${
-                            SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(
-                                lastModifiedTime
-                            )
-                        }",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        text = "字符数: ${content.length}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // 正文输入框
@@ -219,7 +226,7 @@ fun NoteEditScreen(
                     text = "正文",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
                 )
                 BasicTextField(
                     value = content,

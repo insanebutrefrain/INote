@@ -28,16 +28,6 @@ import kotlinx.coroutines.launch
 import macom.inote.R
 import macom.inote.ui.screen.pagers
 
-@OptIn(ExperimentalFoundationApi::class)
-@Preview
-@Composable
-fun BottomViewPreview() {
-    BottomView(
-        scope = rememberCoroutineScope(),
-        pagerState = rememberPagerState(initialPage = 0, pageCount = { pagers.size })
-    )
-}
-
 /**
  * 绘制底部导航栏
  */
@@ -59,14 +49,24 @@ fun BottomView(scope: CoroutineScope, pagerState: PagerState) {
                     Icon(
                         modifier = Modifier.size(20.dp),
                         imageVector = ImageVector.vectorResource(
-                            id = if (pagerState.currentPage == pagers.indexOf(it)) it.icons[0] else it.icons[0]
+                            id = it.icon
                         ),
                         contentDescription = it.title,
-                        tint = if (pagerState.currentPage == pagers.indexOf(it)) colorResource(R.color.myBlue) else Color.Gray
+                        tint = if (pagerState.currentPage == pagers.indexOf(it)) colorResource(R.color.myBlue) else Color.Unspecified
                     )
                     Text(text = it.title, fontSize = 10.sp, fontFamily = FontFamily.Serif)
                 }
             })
         }
     }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Preview
+@Composable
+fun BottomViewPreview() {
+    BottomView(
+        scope = rememberCoroutineScope(),
+        pagerState = rememberPagerState(initialPage = 0, pageCount = { pagers.size })
+    )
 }

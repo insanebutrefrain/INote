@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import macom.inote.R
 import macom.inote.data.Note
 import macom.inote.ui.pager.Pager
@@ -49,12 +51,13 @@ import macom.inote.viewModel.INoteViewModel
 fun NoteTopBar(
     isShow: MutableState<Boolean>,
     notes: SnapshotStateList<Note>,
-    showNote: MutableList<Note>,
+    isSearchNotes: MutableList<Note>,
     isDeleteAlert: MutableState<Boolean>,
     isDeleteMode: MutableState<Boolean>,
     isDeleteMap: SnapshotStateMap<Note, Boolean>,
     noteOrder: MutableState<NoteOrder>,
-    viewModel: INoteViewModel
+    viewModel: INoteViewModel,
+    navController: NavHostController
 ) {
     val isExpand = remember { mutableStateOf(false) }
     // 搜索状态下的导航含
@@ -68,7 +71,11 @@ fun NoteTopBar(
         }
         TopAppBar(
             navigationIcon = {
-                Icon(painterResource(R.drawable.note_outlined), contentDescription = null)
+                Icon(
+                    painter = painterResource(R.drawable.note),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
             },
             title = {
                 Row(
@@ -81,11 +88,11 @@ fun NoteTopBar(
                         .fillMaxWidth()  // 让输入框填充父容器的宽度
                         .focusRequester(focusRequester), value = txt, onValueChange = {
                         txt = it
-                        showNote.clear()
+                        isSearchNotes.clear()
                         notes.forEach { note ->
                             if (txt.isNotEmpty()) {
                                 if (txt in note.body || txt in note.title) {
-                                    showNote.add(note)
+                                    isSearchNotes.add(note)
                                 }
                             }
                         }
@@ -167,7 +174,8 @@ fun NoteTopBar(
                         isExpand = isExpand,
                         isDeleteMode = isDeleteMode,
                         noteOrder = noteOrder,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        navController = navController
                     )
                 }
             })

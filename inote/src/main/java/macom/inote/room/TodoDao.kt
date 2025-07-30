@@ -19,9 +19,7 @@ interface TodoDao {
     @Delete
     suspend fun delete(todo: Todo)
 
-    @Query("SELECT * FROM todos")
-    suspend fun getAllTodos(): List<Todo>
+    @Query("SELECT * FROM todos WHERE user = :user")
+    suspend fun getAllTodos(user: String): List<Todo>
 
-    @Query("SELECT * FROM todos WHERE createTime = :createTime")
-    suspend fun getTodoByCreateTime(createTime: Long): Todo?
 }

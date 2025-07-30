@@ -5,7 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -17,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
 import macom.inote.viewModel.INoteViewModel
 
@@ -24,6 +28,7 @@ import macom.inote.viewModel.INoteViewModel
 enum class NoteOrder {
     ByCreateTime, ByModifiedTime
 }
+
 /**
  * 下拉菜单
  */
@@ -32,18 +37,23 @@ fun NoteMenuView(
     isExpand: MutableState<Boolean>,
     isDeleteMode: MutableState<Boolean>,
     noteOrder: MutableState<NoteOrder>,
-    viewModel: INoteViewModel
+    viewModel: INoteViewModel,
+    navController: NavHostController
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     DropdownMenu(expanded = isExpand.value, onDismissRequest = {
         isExpand.value = false
     }) {
-        DropdownMenuItem(text = { Text("编辑") }, onClick = {
+        DropdownMenuItem(leadingIcon = {
+            Icon(imageVector = Icons.Filled.Edit, contentDescription = "编辑")
+        }, text = { Text("编辑") }, onClick = {
             isDeleteMode.value = true
             isExpand.value = false
         })
-        DropdownMenuItem(text = { Text("同步") }, onClick = {
+        DropdownMenuItem(leadingIcon = {
+            Icon(imageVector = Icons.Filled.Refresh, contentDescription = "同步")
+        }, text = { Text("同步") }, onClick = {
             scope.launch {
                 if (viewModel.syncNotes()) {
                     Toast.makeText(context, "笔记同步成功！", Toast.LENGTH_SHORT).show()
@@ -52,6 +62,11 @@ fun NoteMenuView(
                 }
             }
             isExpand.value = false
+        })
+        DropdownMenuItem(leadingIcon = {
+            Icon(imageVector = Icons.Filled.AccountBox, contentDescription = "我的")
+        }, text = { Text("我的") }, onClick = {
+            navController.navigate(route = "profile")
         })
         Spacer(
             Modifier

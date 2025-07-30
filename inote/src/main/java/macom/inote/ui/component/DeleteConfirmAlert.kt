@@ -36,7 +36,7 @@ fun DeleteConfirmAlert(
                 TextButton(
                     onClick = {
                         onDismiss()
-                    } // 取消删除
+                    }
                 ) {
                     Text("取消")
                 }

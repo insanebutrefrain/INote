@@ -11,15 +11,15 @@ import retrofit2.http.Path
 
 interface NoteApi {
 
-    @GET("note/getAll")
-    fun getAllNotes(): Call<List<Note>>
+    @GET("note/getAll/{user}")
+    fun getAllNotes(@Path("user") user: String): Call<List<Note>>
 
     @POST("note/add")
     fun createNote(@Body note: Note): Call<Note>
 
-    @PUT("note/update/{id}")
-    fun updateNote(@Path("id") id: Long, @Body note: Note): Call<Note>
+    @PUT("note/update")
+    fun updateNote(@Body note: Note): Call<Note>
 
-    @DELETE("note/delete/{id}")
-    fun deleteNote(@Path("id") id: Long): Call<Void>
+    @DELETE("note/delete/")
+    fun deleteNote(@Body note: Note): Call<Void>
 }

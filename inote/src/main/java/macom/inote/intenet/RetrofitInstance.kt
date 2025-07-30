@@ -1,13 +1,21 @@
 package macom.inote.intenet
 
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://192.168.137.1:8080/inote/"
+    private const val BASE_URL = "localhost:8080/inote/"
+
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(3, TimeUnit.SECONDS)
+        .readTimeout(3, TimeUnit.SECONDS)
+        .writeTimeout(3, TimeUnit.SECONDS)
+        .build()
 
     val retrofit: Retrofit by lazy {
-        Retrofit.Builder()
+        Retrofit.Builder().client(client)
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -24,5 +32,8 @@ object RetrofitInstance {
     }
     val taskListApi: TaskListApi by lazy {
         retrofit.create(TaskListApi::class.java)
+    }
+    val userApi: UserApi by lazy {
+        retrofit.create(UserApi::class.java)
     }
 }

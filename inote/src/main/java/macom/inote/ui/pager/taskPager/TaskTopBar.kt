@@ -14,6 +14,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.navigation.NavHostController
 import macom.inote.data.Task
 import macom.inote.data.TaskList
 import macom.inote.ui.pager.Pager
@@ -29,7 +30,8 @@ fun TaskTopBar(
     isDeleteMap: SnapshotStateMap<Task, Boolean>,
     isDeleteAlert: MutableState<Boolean>,
     viewModel: INoteViewModel,
-    nowTaskList: MutableState<TaskList>
+    nowTaskList: MutableState<TaskList>,
+    navController: NavHostController
 ) {
     val isExpand = remember { mutableStateOf(false) }
     // 正常模式下的顶部导航栏
@@ -45,7 +47,10 @@ fun TaskTopBar(
                     isExpand.value = true
                 }) {
                     Icon(imageVector = Icons.Filled.MoreVert, contentDescription = "更多")
-                    TaskMenuView(isExpand, isDeleteMode, viewModel = viewModel)
+                    TaskMenuView(
+                        isExpand = isExpand, isDeleteMode = isDeleteMode, viewModel = viewModel,
+                        navController = navController,
+                    )
                 }
             })
     else {

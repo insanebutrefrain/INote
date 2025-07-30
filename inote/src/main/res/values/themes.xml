@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.INote" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.INote" parent="android:Theme.Material.Light.NoActionBar">
+        <!--        <item name="android:windowEnterTransition">@transition/enter</item>-->
+        <!--        <item name="android:activityOpenEnterAnimation">@transition/enter</item>-->
+    </style>
 </resources>

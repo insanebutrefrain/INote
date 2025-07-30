@@ -77,7 +77,6 @@ fun NoteCard(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-
             // Checkbox在最右端
             if (isDeleteMode.value) {
                 Checkbox(checked = isDeleteMap[note] ?: false, // 使用 null 安全操作符
