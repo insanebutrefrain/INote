@@ -13,13 +13,7 @@ import macom.inote.data.User
 data class INoteState(
     var notes: SnapshotStateList<Note> = mutableStateListOf(),
     var todos: SnapshotStateList<Todo> = mutableStateListOf(),
-    var taskLists: SnapshotStateList<TaskList> = mutableStateListOf(
-        TaskList(
-            listName = "全部",
-            createTime = 0,
-            user = "123"
-        )
-    ),// todo user
+    var taskLists: SnapshotStateList<TaskList> = mutableStateListOf(),
     var tasks: SnapshotStateList<Task> = mutableStateListOf(),
     val user: MutableState<User?> = mutableStateOf(value = null)
 )

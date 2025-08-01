@@ -4,7 +4,6 @@ import android.util.Log
 import macom.inote.data.Task
 import macom.inote.intenet.RetrofitInstance
 import macom.inote.room.TaskDao
-import retrofit2.await
 
 /**
  * 任务表仓库
@@ -12,7 +11,7 @@ import retrofit2.await
 class TaskRepository(private val taskDao: TaskDao) {
 
     /**
-     * 本地Room数据库操作
+     * 本地Room数据库操作，同时发出服务端请求，网络超时返回false
      */
     suspend fun insert(task: Task): Boolean {
         taskDao.insert(task)
@@ -20,7 +19,7 @@ class TaskRepository(private val taskDao: TaskDao) {
     }
 
     suspend fun update(task: Task): Boolean {
-        taskDao.update(task)
+        taskDao.insert(task)
         return updateTaskToServer(task)
     }
 
@@ -34,45 +33,52 @@ class TaskRepository(private val taskDao: TaskDao) {
     }
 
     /**
-     * 向服务端请求
+     * 向服务端请求,请求单个数据不报异常，同步所有数据时会上报网络异常
      */
 
-    suspend fun syncAllTasksFromServer(user: String): List<Task> {
+    suspend fun syncAllTasks(user: String): Boolean {
         try {
-            val serverTasks = RetrofitInstance.taskApi.getAllTasks(user).await()
-            return serverTasks
+            taskDao.getAll(user).forEach {
+                RetrofitInstance.taskApi.updateTask(it)
+            }
+            RetrofitInstance.taskApi.getAllTasks(user).forEach {
+                taskDao.insert(it)
+            }
+            return true
         } catch (e: Exception) {
-            Log.d("TaskRepo", "同步任务失败", e)
+            Log.d("网络", "同步所有任务失败", e)
+            return false
         }
-        return listOf()
     }
 
     suspend fun addTaskToServer(task: Task): Boolean {
         try {
-            RetrofitInstance.taskApi.createTask(task).await()
+            Log.d("我",task.toString())
+            RetrofitInstance.taskApi.createTask(task)
             return true
         } catch (e: Exception) {
-            Log.d("TaskRepo", "同步新增任务失败", e)
+            Log.d("网络", "同步新增任务失败", e)
             return false
         }
     }
 
     suspend fun updateTaskToServer(task: Task): Boolean {
         try {
-            RetrofitInstance.taskApi.updateTask(task).await()
+            Log.d("我",task.toString())
+            RetrofitInstance.taskApi.updateTask(task)
             return true
         } catch (e: Exception) {
-            Log.d("TaskRepo", "同步更新任务失败", e)
+            Log.d("网络", "同步更新任务失败", e)
             return false
         }
     }
 
     private suspend fun deleteTaskFromServer(task: Task): Boolean {
         try {
-            RetrofitInstance.taskApi.deleteTask(task).await()
+            RetrofitInstance.taskApi.deleteTask(task)
             return true
         } catch (e: Exception) {
-            Log.d("TaskRepo", "同步删除任务失败", e)
+            Log.d("网络", "同步删除任务失败", e)
             return false
         }
     }

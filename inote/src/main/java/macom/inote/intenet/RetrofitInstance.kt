@@ -6,12 +6,13 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    private const val BASE_URL = "localhost:8080/inote/"
+    private const val BASE_URL = "http://192.168.137.1:8080/iNote/"
 
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(3, TimeUnit.SECONDS)
-        .readTimeout(3, TimeUnit.SECONDS)
-        .writeTimeout(3, TimeUnit.SECONDS)
+    // 创建 OkHttpClient 并设置超时时间
+    val client = OkHttpClient.Builder()
+        .connectTimeout(3, TimeUnit.SECONDS)  // 连接超时时间
+        .readTimeout(3, TimeUnit.SECONDS)     // 读取超时时间
+        .writeTimeout(3, TimeUnit.SECONDS)    // 写入超时时间
         .build()
 
     val retrofit: Retrofit by lazy {

@@ -13,7 +13,7 @@ import macom.inote.data.User
 
 @Database(
     entities = [Note::class, Todo::class, TaskList::class, Task::class, User::class],
-    version = 5
+    version = 1
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao

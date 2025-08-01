@@ -33,7 +33,7 @@ val selectEditTask = mutableStateOf(
         createTime = System.currentTimeMillis(),
         remindTime = null,
         taskListId = 0,
-        user = "123", // todo user
+        user = "未知",
     )
 )
 
@@ -50,7 +50,15 @@ fun TaskPager(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val allTaskLists = state.value.taskLists
-    val nowTaskList = remember { mutableStateOf(allTaskLists[0]) }
+    val nowTaskList = remember {
+        mutableStateOf(
+            TaskList(
+                listName = "全部",
+                createTime = 0L,
+                user = viewModel.getUser()!!
+            )
+        )
+    }
     val context = LocalContext.current
     val isDeleteMode = mutableStateOf(false)
     val isShowDeleteAlert = mutableStateOf(false)

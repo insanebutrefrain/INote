@@ -40,10 +40,10 @@ fun TaskMenuView(
             Icon(imageVector = Icons.Filled.Refresh, contentDescription = "同步")
         }, text = { Text("同步") }, onClick = {
             scope.launch {
-                if (viewModel.syncTasks()) {
-                    Toast.makeText(context, "任务同步成功！", Toast.LENGTH_SHORT).show()
+                if (viewModel.sync()) {
+                    Toast.makeText(context, "同步成功！", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(context, "任务同步失败，请检查网络！", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "同步失败，请检查网络！", Toast.LENGTH_SHORT).show()
                 }
             }
             isExpand.value = false

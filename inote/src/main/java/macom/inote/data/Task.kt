@@ -26,7 +26,7 @@ data class Task(
     val createTime: Long,
     var remindTime: Long?,
     var overTime: Long? = null,
-    var repeatMode: String = "无",
+    var repeatPeriod: Long = 0,
     @ColumnInfo(index = true) // 为外键添加索引提高查询性能
     val taskListId: Long,     // 外键字段
     val user: String

@@ -1,7 +1,6 @@
 package macom.inote.intenet
 
 import macom.inote.data.Note
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -11,15 +10,15 @@ import retrofit2.http.Path
 
 interface NoteApi {
 
-    @GET("note/getAll/{user}")
-    fun getAllNotes(@Path("user") user: String): Call<List<Note>>
-
     @POST("note/add")
-    fun createNote(@Body note: Note): Call<Note>
+    suspend fun createNote(@Body note: Note): Note
 
     @PUT("note/update")
-    fun updateNote(@Body note: Note): Call<Note>
+    suspend fun updateNote(@Body note: Note): Note
 
-    @DELETE("note/delete/")
-    fun deleteNote(@Body note: Note): Call<Void>
+    @DELETE("note/delete")
+    suspend fun deleteNote(@Body note: Note): Void
+
+    @GET("note/getAll/{user}")
+    suspend fun getAllNotes(@Path("user") user: String): List<Note>
 }

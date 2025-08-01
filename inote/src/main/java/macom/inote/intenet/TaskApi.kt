@@ -1,7 +1,6 @@
 package macom.inote.intenet
 
 import macom.inote.data.Task
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -12,14 +11,14 @@ import retrofit2.http.Path
 interface TaskApi {
 
     @POST("task/add")
-    fun createTask(@Body task: Task): Call<Task>
-
-    @GET("task/getAll/{user}")
-    fun getAllTasks(@Path("user") user: String): Call<List<Task>>
+    suspend fun createTask(@Body task: Task): Task
 
     @PUT("task/update")
-    fun updateTask(@Body task: Task): Call<Task>
+    suspend fun updateTask(@Body task: Task): Task
 
     @DELETE("task/delete}")
-    fun deleteTask(@Body task: Task): Call<Void>
+    suspend fun deleteTask(@Body task: Task): Void
+
+    @GET("task/getAll/{user}")
+    suspend fun getAllTasks(@Path("user") user: String): List<Task>
 }

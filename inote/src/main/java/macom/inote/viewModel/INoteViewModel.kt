@@ -6,11 +6,9 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import macom.inote.data.Note
 import macom.inote.data.TaskList
 import macom.inote.repository.NoteRepository
@@ -19,10 +17,10 @@ import macom.inote.repository.TaskRepository
 import macom.inote.repository.TodoRepository
 import macom.inote.repository.UserRepository
 import macom.inote.room.AppDatabase
+import macom.inote.workerManager.ReminderScheduler
 
 open class INoteViewModel(application: Application) : AndroidViewModel(application) {
-    private val _state =
-        MutableStateFlow(INoteState())
+    private val _state = MutableStateFlow(INoteState())
     val state = _state.asStateFlow()
     private val taskRepository = TaskRepository(AppDatabase.getDatabase(application).taskDao())
     private val todoRepository = TodoRepository(AppDatabase.getDatabase(application).todoDao())
@@ -34,6 +32,28 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
     private var loginInfo: SharedPreferences =
         application.getSharedPreferences("loginInfo", Context.MODE_PRIVATE)
 
+    val reminderScheduler = ReminderScheduler(application.applicationContext)
+
+    /**
+     * 调度提醒
+     */
+    // 封装调度提醒的方法
+    fun scheduleNoteReminder(
+        id: String,
+        title: String,
+        content: String,
+        repeatPeriod: Long,
+        delayInMillis: Long
+    ) {
+        reminderScheduler.scheduleReminder(id, title, content, repeatPeriod, delayInMillis)
+    }
+
+    // 封装取消提醒的方法
+    fun cancelNoteReminder(noteId: String) {
+        reminderScheduler.cancelReminder(noteId)
+    }
+
+
     init {
         // 获取所有数据
         reload()
@@ -42,12 +62,11 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
     private fun reload() {
         if (getUser() != null && getPsw() != null) {
             viewModelScope.launch {
-                _state.value.user.value =
-                    userRepository.findUser(getUser()!!, getPsw()!!)
-                _state.value.notes.addAll(noteRepository.getAll(getUser()!!))
-                _state.value.tasks.addAll(taskRepository.getAll(getUser()!!))
-                _state.value.taskLists.addAll(taskListRepository.getAll(getUser()!!))
-                _state.value.todos.addAll(todoRepository.getAll(getUser()!!))
+                _state.value.user.value = userRepository.find(getUser()!!, getPsw()!!)
+                _state.value.notes.run { clear();addAll(noteRepository.getAll(getUser()!!)) }
+                _state.value.tasks.run { clear();addAll(taskRepository.getAll(getUser()!!)) }
+                _state.value.taskLists.run { clear();addAll(taskListRepository.getAll(getUser()!!)) }
+                _state.value.todos.run { clear();addAll(todoRepository.getAll(getUser()!!)) }
             }
         }
     }
@@ -55,16 +74,23 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
     /**
      * user
      */
+
+    // 注册
     suspend fun register(intent: INoteIntent.Register): Boolean {
-        return if (userRepository.findUser(intent.user.id) != null)
-            false else {
+        return if (userRepository.find(intent.user.id) != null) false else {
+            // 注册自带全部任务表
             userRepository.insert(intent.user)
+            taskListRepository.insert(
+                TaskList(
+                    listName = "全部", createTime = 0, user = intent.user.id
+                )
+            )
             true
         }
     }
 
     suspend fun login(intent: INoteIntent.Login): Boolean {
-        if (userRepository.findUser(intent.id, intent.psw) == null) {
+        if (userRepository.find(intent.id, intent.psw) == null) {
             return false
         } else {
             setUserAndPsw(intent.id, intent.psw)
@@ -89,136 +115,62 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
         return loginInfo.getString("psw", null)
     }
 
-    fun setUserAndPsw(user: String?, psw: String?) {
+    private fun setUserAndPsw(user: String?, psw: String?) {
         loginInfo.edit().putString("user", user).apply()
         loginInfo.edit().putString("psw", psw).apply()
     }
 
+
     /**
      * 同步
      */
-    suspend fun syncNotes(): Boolean {
-        return try {
-            withContext(Dispatchers.IO) {
 
-                // 从云端获取所有笔记并同步到本地
-                val allInServer = noteRepository.getAllNotesFromServer(getUser()!!)
-                allInServer.forEach {
-                    val success = noteRepository.insert(it)
-                    if (!success) {
-                        Log.d("网络", "同步本地笔记失败: ${it}")
-                        return@withContext false // 立即返回 false，停止后续逻辑
-                    }
-                }
-
-                // 获取本地所有笔记并同步到云端
-                val all = noteRepository.getAll(getUser()!!)
-                all.forEach {
-                    val success = noteRepository.addNoteToServer(it)
-                    if (!success) {
-                        Log.d("网络", "同步笔记到云端失败: ${it}")
-                        return@withContext false // 立即返回 false，停止后续逻辑
-                    }
-                }
-                // 更新本地状态
-                _state.value.notes.clear()
-                _state.value.notes.addAll(noteRepository.getAll(getUser()!!))
-                true // 如果所有操作成功，则返回 true
-            }
+    suspend fun sync(): Boolean {
+        try {
+            return syncUsers() && syncNotes() && syncTodos() && syncTodos() && syncTasks()
         } catch (e: Exception) {
-            Log.d("网络", "同步笔记失败，异常: ${e.message}")
-            false // 捕获到异常时返回 false
+            Log.d("网络", "同步所有内容失败", e)
+            return false
         }
+    }
+
+    suspend fun syncUsers(): Boolean {
+        if (userRepository.syncAllUser())
+            return true
+        else {
+            Log.d("网络", "同步所有用户失败")
+            return false
+        }
+    }
+
+    suspend fun syncNotes(): Boolean {
+        if (!noteRepository.syncAllNotes(getUser()!!)) {
+            Log.d("网络", "同步所有笔记失败")
+            return false
+        }
+        // 更新本地状态
+        _state.value.notes.run { clear();addAll(noteRepository.getAll(getUser()!!)) }
+        return true // 如果所有操作成功，则返回 true
     }
 
     suspend fun syncTodos(): Boolean {
-        return try {
-            withContext(Dispatchers.IO) {
-
-                // 从云端获取所有笔记并同步到本地
-                val allInServer = todoRepository.syncAllTodosFromServer(getUser()!!)
-                allInServer.forEach {
-                    val success = todoRepository.insert(it)
-                    if (!success) {
-                        Log.d("网络", "同步本地待办失败: ${it}")
-                        return@withContext false // 立即返回 false，停止后续逻辑
-                    }
-                }
-
-                // 获取本地所有笔记并同步到云端
-                val all = todoRepository.getAll(getUser()!!)
-                all.forEach {
-                    val success = todoRepository.addTodoToServer(it)
-                    if (!success) {
-                        Log.d("网络", "同步待办到云端失败: ${it}")
-                        return@withContext false // 立即返回 false，停止后续逻辑
-                    }
-                }
-                // 更新本地状态
-                _state.value.todos.clear()
-                _state.value.todos.addAll(todoRepository.getAll(getUser()!!))
-                true // 如果所有操作成功，则返回 true
-            }
-        } catch (e: Exception) {
-            Log.d("网络", "同步待办失败，异常: ${e.message}")
-            false // 捕获到异常时返回 false
+        if (!todoRepository.syncAllTodo(getUser()!!)) {
+            Log.d("网络", "同步所有待办失败")
+            return false
         }
+        // 更新本地状态
+        _state.value.todos.run { clear();addAll(todoRepository.getAll(getUser()!!)) }
+        return true // 如果所有操作成功，则返回 true
     }
 
     suspend fun syncTasks(): Boolean {
-        return try {
-            withContext(Dispatchers.IO) {
-
-                // 从云端获取所有笔记并同步到本地
-                val allTaskInServer = taskRepository.syncAllTasksFromServer(getUser()!!)
-                allTaskInServer.forEach {
-                    val success = taskRepository.insert(it)
-                    if (!success) {
-                        Log.d("网络", "同步本地任务失败: ${it}")
-                        return@withContext false // 立即返回 false，停止后续逻辑
-                    }
-                }
-                taskListRepository.syncAllTaskListsFromServer(getUser()!!).forEach {
-                    val success = taskListRepository.insert(it)
-                    if (!success) {
-                        Log.d("网络", "同步本地任务表失败: ${it}")
-                        return@withContext false // 立即返回 false，停止后续逻辑
-                    }
-                }
-                // 更新本地状态
-                // 获取本地所有笔记并同步到云端
-                val allTasks = taskRepository.getAll(getUser()!!)
-                allTasks.forEach {
-                    val success = taskRepository.addTaskToServer(it)
-                    if (!success) {
-                        Log.d("网络", "同步任务到云端失败: ${it}")
-                        return@withContext false // 立即返回 false，停止后续逻辑
-                    }
-                }
-                taskListRepository.getAll(getUser()!!).forEach {
-                    val success = taskListRepository.addTaskListToServer(it)
-                    if (!success) {
-                        Log.d("网络", "同步任务表到云端失败: ${it}")
-                        return@withContext false // 立即返回 false，停止后续逻辑
-                    }
-                }
-                _state.value.tasks.clear()
-                _state.value.taskLists.clear()
-                _state.value.tasks.addAll(taskRepository.getAll(getUser()!!))
-                _state.value.taskLists.add(
-                    TaskList(
-                        listName = "全部",
-                        createTime = 0,
-                        user = "123"
-                    )
-                )
-                _state.value.taskLists.addAll(taskListRepository.getAll(getUser()!!))
-                true // 如果所有操作成功，则返回 true
-            }
-        } catch (e: Exception) {
-            Log.d("网络", "同步失败，异常: ${e.message}")
-            false // 捕获到异常时返回 false
+        if (!taskRepository.syncAllTasks(getUser()!!) || !taskListRepository.syncTaskList(getUser()!!)) {
+            Log.d("网络", "同步所有任务或任务表失败")
+            return false
         }
+        _state.value.tasks.run { clear();addAll(taskRepository.getAll(getUser()!!)) }
+        _state.value.taskLists.run { clear();addAll(taskListRepository.getAll(getUser()!!)) }
+        return true
     }
 
 
@@ -241,7 +193,7 @@ open class INoteViewModel(application: Application) : AndroidViewModel(applicati
             body = intent.body,
             createTime = intent.createTime,
             modifiedTime = intent.modifiedTime,
-            user = "123", // todo user
+            user = getUser()!!
         )
         val newState = state.value.copy()
         if (index != -1) {

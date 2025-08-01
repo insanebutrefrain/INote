@@ -1,5 +1,6 @@
 package macom.inote.ui.navigation
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -22,42 +23,48 @@ import macom.inote.viewModel.INoteViewModel
  * 用于导航至各个界面
  * 包括主界面、笔记编辑界面
  */
+
+enum class Route(val str: String) {
+    Splash(str = "splash"), Profile(str = "profile"), Login(str = "login"), Register(str = "register"),
+    MainPager(str = "mainPager"), AddNote(str = "addNote"), EditNote(str = "editNote")
+}
+
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun MainNavigation(viewModel: INoteViewModel) {
     val navController: NavHostController = rememberNavController()
     val startRoute =
-        if (viewModel.getPsw() == null || viewModel.getUser() == null || viewModel.getUser()
-                .equals(other = "") || viewModel.getPsw().equals(other = "")
-        ) "login" else "mainPager"
+        if (viewModel.getPsw() != null && viewModel.getUser() != null) "mainPager" else "login"
+
     NavHost(navController = navController, startDestination = startRoute) {
         /**
          * 导航至各个界面
          */
         // 闪屏界面，确定登录状态
         // 已经弃用
-        composable(route = "splash") {
+        composable(route = Route.Splash.str) {
             SplashScreen(navController = navController, viewModel = viewModel)
         }
         // 个人信息界面
-        composable(route = "profile") {
+        composable(route = Route.Profile.str) {
             ProfileScreen(navController = navController, viewModel = viewModel)
         }
         // 登录界面
-        composable(route = "login") {
+        composable(route = Route.Login.str) {
             LoginScreen(navController = navController, viewModel = viewModel)
         }
         // 注册界面
-        composable(route = "register") {
+        composable(route = Route.Register.str) {
             RegisterScreen(
                 navController = navController, viewModel = viewModel
             )
         }
         // 主界面
-        composable(route = "mainPager") {
+        composable(route = Route.MainPager.str) {
             MainPagerScreen(viewModel = viewModel, navController = navController)
         }
         // 添加笔记界面
-        composable("addNote") {
+        composable(route = Route.AddNote.str) {
             NoteEditScreen(navController = navController,
                 note = null,
                 onSave = { title, content, modifiedTime, createTime ->
@@ -72,7 +79,7 @@ fun MainNavigation(viewModel: INoteViewModel) {
         }
         // 编辑笔记界面
         composable(
-            "editNote" + "/{note}", arguments = listOf(navArgument("note") {
+            route = Route.EditNote.str + "/{note}", arguments = listOf(navArgument("note") {
                 type = NavType.StringType
             })
         ) {

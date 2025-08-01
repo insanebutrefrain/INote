@@ -13,12 +13,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -39,45 +46,60 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
     viewModel: INoteViewModel
 ) {
     val isLogoutAlert = remember { mutableStateOf(false) }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(start = 20.dp, end = 20.dp, top = 50.dp, bottom = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // 应用图标和名称
-        AppInfoSection()
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 用户头像和信息
-        UserProfileSection(viewModel = viewModel)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 账号信息
-        AccountInfoSection(viewModel = viewModel)
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 退出登录按钮
-        LogoutButton(isLogoutAlert)
-
-        LogoutConfirmAlert(
-            isLogoutAlert = isLogoutAlert,
-            onLogoutConfirmed = {
-                isLogoutAlert.value = false
-                viewModel.logout(INoteIntent.Logout)
-                navController.navigate(route = "login")
-            }
+    Scaffold(topBar = {
+        TopAppBar(
+            navigationIcon = {
+                IconButton(onClick = {
+                    navController.popBackStack()
+                }) {
+                    Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "返回")
+                }
+            },
+            title = {}
         )
+    }) {padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(start = 20.dp, end = 20.dp, top = padding.calculateTopPadding(), bottom = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 应用图标和名称
+            AppInfoSection()
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 用户头像和信息
+            UserProfileSection(viewModel = viewModel)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 账号信息
+            AccountInfoSection(viewModel = viewModel)
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // 退出登录按钮
+            LogoutButton(isLogoutAlert)
+
+            LogoutConfirmAlert(
+                isLogoutAlert = isLogoutAlert,
+                onLogoutConfirmed = {
+                    isLogoutAlert.value = false
+                    viewModel.logout(INoteIntent.Logout)
+                    navController.navigate(route = "login")
+                }
+            )
+        }
     }
 }
 

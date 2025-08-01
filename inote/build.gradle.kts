@@ -62,14 +62,23 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     //增加RxJava库的依赖
-    implementation("io.reactivex.rxjava3:rxjava:3.1.5")
-    //增加在Android对RxJava库的支持
-    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
+//    implementation("io.reactivex.rxjava3:rxjava:3.1.5")
+//    //增加在Android对RxJava库的支持
+//    implementation("io.reactivex.rxjava3:rxandroid:3.0.2")
     //增加Retrofit支持RxJava3的CallAdapter
-    implementation("com.squareup.retrofit2:adapter-rxjava3:2.9.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
+//    implementation("com.squareup.retrofit2:adapter-rxjava3:2.9.0")
+//    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.5.1")
+//
+    // WorkManager
+    implementation ("androidx.work:work-runtime-ktx:2.9.0")
 
-//    implementation("androidx.compose.material3:material3:1.2.0") // 或更高版本
+    // Compose 相关
+    implementation ("androidx.compose.material3:material3:1.2.1")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.6.7")
+
+    // 其他可能需要的依赖
+    implementation ("androidx.core:core-ktx:1.12.0")
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
 
     implementation(libs.androidx.core.ktx)

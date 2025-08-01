@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import macom.inote.data.Task
 import macom.inote.data.TaskList
 import macom.inote.ui.component.TaskAndTodoAlertDialog
+import macom.inote.ui.pager.todoPager.RepeatType
 import macom.inote.viewModel.INoteIntent
 import macom.inote.viewModel.INoteViewModel
 import java.util.Calendar
@@ -28,7 +29,8 @@ fun TaskAddAlert(viewModel: INoteViewModel, nowTaskList: MutableState<TaskList>)
                 viewModel = viewModel,
                 context = context,
                 isShowDialog = isShowDialog,
-                isSetReminder = isSetReminder
+                isSetReminder = isSetReminder,
+                repeatType = repeatType,
             )
         },
     )
@@ -41,7 +43,8 @@ private fun addTaskOnConfirm(
     nowTaskList: MutableState<TaskList>?,
     viewModel: INoteViewModel,
     context: Context,
-    isShowDialog: MutableState<Boolean>
+    isShowDialog: MutableState<Boolean>,
+    repeatType: RepeatType
 ) {
     if (text.isNotEmpty()) {
         val newTask = Task(
@@ -50,12 +53,20 @@ private fun addTaskOnConfirm(
             createTime = System.currentTimeMillis(),
             remindTime = if (isSetReminder) remindDateTime.timeInMillis else null,
             taskListId = nowTaskList!!.value.createTime,
-            user = "123", // todo user
+            user = viewModel.getUser()!!,
+            repeatPeriod = repeatType.value,
         )
         val intent = INoteIntent.AddTask(
             newTask = newTask, nowTaskList = nowTaskList.value
         )
         viewModel.addTask(intent)
+        if (isSetReminder) viewModel.scheduleNoteReminder(
+            id = newTask.user + newTask.createTime,
+            title = "iNote 任务",
+            content = newTask.body,
+            delayInMillis = remindDateTime.timeInMillis - System.currentTimeMillis(),
+            repeatPeriod = repeatType.value
+        )
         Toast.makeText(
             context, "新建任务成功", Toast.LENGTH_SHORT
         ).show()

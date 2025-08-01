@@ -1,24 +1,24 @@
 package macom.inote.intenet
 
 import macom.inote.data.Todo
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
 
 interface TodoApi {
 
     @POST("todo/add")
-    fun createTodo(@Body todo: Todo): Call<Todo>
+    suspend fun createTodo(@Body todo: Todo): Todo
 
     @DELETE("todo/delete")
-    fun deleteTodo(@Body todo: Todo): Call<Void>
+    suspend fun deleteTodo(@Body todo: Todo): Void
 
     @PUT("todo/update")
-    fun updateTodo(@Body todo: Todo): Call<Todo>
+    suspend fun updateTodo(@Body todo: Todo): Todo
 
     @GET("todo/getAll/{user}")
-    fun getAllTodos(user: String): Call<List<Todo>>
+    suspend fun getAllTodos(@Path("user") user: String): List<Todo>
 }

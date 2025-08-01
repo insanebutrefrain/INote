@@ -14,6 +14,6 @@ data class Todo(
     val createTime: Long, // 使用 createTime 作为主键
     var remindTime: Long?,
     var overTime: Long? = null,
-    var repeatMode: String = "无",
+    var repeatPeriod: Long = 0,
     var user: String
 )

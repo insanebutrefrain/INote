@@ -46,7 +46,7 @@ var selectedTodo: MutableState<Todo> =
             body = "",
             createTime = System.currentTimeMillis(),
             remindTime = null,
-            user = "123"
+            user = "未知"
         )
     ) // todo user
 
