@@ -199,12 +199,11 @@ fun NoteEditScreen(
                         undoStack.add(title to content)
                         title = it
                     }, maxLines = 1,
-                    textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                    textStyle = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
                         .background(
-                            MaterialTheme.colorScheme.surface,
+                            color = MaterialTheme.colorScheme.background,
                             shape = MaterialTheme.shapes.small
                         )
                         .padding(16.dp)
@@ -235,12 +234,11 @@ fun NoteEditScreen(
                         undoStack.add(title to content)
                         content = it
                     },
-                    textStyle = TextStyle(fontSize = 18.sp),
+                    textStyle = TextStyle(fontSize = 18.sp, color = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
                         .background(
-                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.background,
                             shape = MaterialTheme.shapes.small
                         )
                         .padding(16.dp)
